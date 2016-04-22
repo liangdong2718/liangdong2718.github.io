@@ -1,0 +1,77 @@
+reference
+https://developer.mozilla.org/en-US/docs/Mozilla/Testing/Firefox_and_Address_Sanitizer
+
+1.in the source path:
+vim .mozconfig 
+content like follow:
+################################################start#################################
+dd_options MOZ_OBJDIR=@TOPSRCDIR@/objdir-ff-asan
+
+# Adjust this to the number of CPU cores + 2
+mk_add_options MOZ_MAKE_FLAGS=-j2
+
+# Enable ASan specific code and build workarounds
+ac_add_options --enable-address-sanitizer
+
+
+# Set CC/CXX based on LLVM_HOME
+#export CC="$LLVM_HOME/build/bin/clang"
+export CXX="/usr/bin/clang++-3.8"
+export CC="/usr/bin/clang-3.8"
+
+# This will ensure the symbolizer is packaged with the binary
+export LLVM_SYMBOLIZER="/usr/bin/llvm-symbolizer-3.8"
+
+# Add ASan to our compiler flags
+export CFLAGS="-fsanitize=address -Dxmalloc=myxmalloc -fPIC"
+export CXXFLAGS="-fsanitize=address -Dxmalloc=myxmalloc -fPIC"
+
+# Additionally, we need the ASan flag during linking. Normally, our C/CXXFLAGS would
+# be used during linking as well but there is at least one place in our build where
+# our CFLAGS are not added during linking.
+# Note: The use of this flag causes Clang to automatically link the ASan runtime :)
+export LDFLAGS="-fsanitize=address"
+
+# These three are required by ASan
+ac_add_options --disable-jemalloc
+ac_add_options --disable-crashreporter
+ac_add_options --disable-elf-hack
+
+# Keep symbols to symbolize ASan traces later
+export MOZ_DEBUG_SYMBOLS=1
+ac_add_options --enable-debug-symbols
+ac_add_options --disable-install-strip
+
+# Settings for an opt build (preferred)
+# The -gline-tables-only ensures that all the necessary debug information for ASan
+# is present, but the rest is stripped so the resulting binaries are smaller.
+#ac_add_options --enable-optimize="--gline-tables-only"
+#ac_add_options --disable-debug
+
+# Settings for a debug+opt build
+#ac_add_options --enable-optimize
+ac_add_options --enable-debug
+
+# MacOSX only: Uncomment and adjust this path to match your SDK
+# ac_add_options --with-macos-sdk=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk
+
+#You may also need this, as seen in browser/config/mozconfigs/linux64/nightly-asan (the config file used for Address Sanitizer builds used for automated testing):
+
+# ASan specific options on Linux
+ac_add_options --enable-valgrind
+
+################################################end#################################
+
+2.build
+./mach build
+
+3.run
+./mach run
+
+4.set the environment variable ASAN_SYMBOLIZER_PATH
+export ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer-3.8
+
+5.debug
+./mach run debug
+
+
