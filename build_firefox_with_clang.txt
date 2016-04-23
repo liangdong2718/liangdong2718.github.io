@@ -5,7 +5,7 @@ https://developer.mozilla.org/en-US/docs/Mozilla/Testing/Firefox_and_Address_San
 vim .mozconfig 
 content like follow:
 ################################################start#################################
-dd_options MOZ_OBJDIR=@TOPSRCDIR@/objdir-ff-asan
+add_options MOZ_OBJDIR=@TOPSRCDIR@/objdir-ff-asan
 
 # Adjust this to the number of CPU cores + 2
 mk_add_options MOZ_MAKE_FLAGS=-j2
@@ -51,6 +51,8 @@ ac_add_options --disable-install-strip
 # Settings for a debug+opt build
 #ac_add_options --enable-optimize
 ac_add_options --enable-debug
+ac_add_options --disable-optimize
+ac_add_options --disable-tests
 
 # MacOSX only: Uncomment and adjust this path to match your SDK
 # ac_add_options --with-macos-sdk=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk
@@ -58,7 +60,7 @@ ac_add_options --enable-debug
 #You may also need this, as seen in browser/config/mozconfigs/linux64/nightly-asan (the config file used for Address Sanitizer builds used for automated testing):
 
 # ASan specific options on Linux
-ac_add_options --enable-valgrind
+#ac_add_options --enable-valgrind
 
 ################################################end#################################
 
